@@ -15,25 +15,25 @@ maze_logic_node:
     cmd_vel_topic: /cmd_vel
     desired_wall_distance: 0.45
     wall_detect_threshold: 0.8
-    front_block_threshold: 0.55
-    turn_exit_front_threshold: 0.85
-    front_clearance_target: 1.10
-    base_linear_speed: 0.24
-    min_linear_speed: 0.05
-    max_linear_speed: 0.32
-    search_linear_speed: 0.14
+    front_block_threshold: 0.48
+    turn_exit_front_threshold: 0.75
+    front_clearance_target: 0.95
+    base_linear_speed: 0.30
+    min_linear_speed: 0.07
+    max_linear_speed: 0.42
+    search_linear_speed: 0.18
     search_turn_speed: 0.20
     search_bias: 0.22
-    turn_linear_speed: 0.03
-    turn_angular_speed: 0.75
-    max_angular_speed: 1.5
-    max_speed_reduction: 0.24
+    turn_linear_speed: 0.05
+    turn_angular_speed: 0.85
+    max_angular_speed: 1.8
+    max_speed_reduction: 0.18
     predictive_gain: 0.40
     angular_kp: 2.5
     angular_ki: 0.0
-    angular_kd: 0.28
+    angular_kd: 0.22
     angular_integral_limit: 0.6
-    linear_kp: 1.0
+    linear_kp: 0.85
     linear_ki: 0.0
     linear_kd: 0.06
     linear_integral_limit: 0.4
