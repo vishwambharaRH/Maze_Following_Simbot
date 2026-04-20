@@ -1,14 +1,13 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>maze_solver_logic</name>
+  <name>maze_solver_perception</name>
   <version>0.1.0</version>
-  <description>Predictive wall-following logic and velocity control for a maze solver.</description>
+  <description>LiDAR filtering and regional distance extraction for the maze solver.</description>
   <maintainer email="systems.architect@example.com">Systems Architect</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
 
-  <depend>geometry_msgs</depend>
   <depend>maze_solver_interfaces</depend>
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
@@ -16,8 +15,6 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
 
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <export>

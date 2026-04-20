@@ -1,19 +1,16 @@
-import math
-from typing import Iterable, List
-
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
-from sensor_msgs.msg import LaserScan
 
 from .control_core import PredictiveWallFollower
+from maze_solver_interfaces.msg import DistanceRegions
 
 
 class MazeLogicNode(Node):
     def __init__(self) -> None:
         super().__init__('maze_logic_node')
 
-        self.declare_parameter('scan_topic', '/scan_filtered')
+        self.declare_parameter('regions_topic', '/distance_regions')
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('desired_wall_distance', 0.45)
         self.declare_parameter('wall_detect_threshold', 0.8)
@@ -38,9 +35,6 @@ class MazeLogicNode(Node):
         self.declare_parameter('linear_ki', 0.0)
         self.declare_parameter('linear_kd', 0.05)
         self.declare_parameter('linear_integral_limit', 0.4)
-        self.declare_parameter('front_angle_deg', 20.0)
-        self.declare_parameter('side_center_deg', 90.0)
-        self.declare_parameter('side_width_deg', 35.0)
 
         config = {name: self.get_parameter(name).value for name in [
             'desired_wall_distance',
@@ -68,10 +62,6 @@ class MazeLogicNode(Node):
             'linear_integral_limit',
         ]}
 
-        self.front_angle_deg = float(self.get_parameter('front_angle_deg').value)
-        self.side_center_deg = float(self.get_parameter('side_center_deg').value)
-        self.side_width_deg = float(self.get_parameter('side_width_deg').value)
-
         self.controller = PredictiveWallFollower(config)
         self.publisher = self.create_publisher(
             Twist,
@@ -79,54 +69,19 @@ class MazeLogicNode(Node):
             10,
         )
         self.subscription = self.create_subscription(
-            LaserScan,
-            str(self.get_parameter('scan_topic').value),
-            self.scan_callback,
+            DistanceRegions,
+            str(self.get_parameter('regions_topic').value),
+            self.regions_callback,
             10,
         )
-        self.get_logger().info('Maze logic node ready. Waiting for scan data.')
+        self.get_logger().info('Maze logic node ready. Waiting for regional distance data.')
 
-    def scan_callback(self, msg: LaserScan) -> None:
-        front = self._region_min(
-            msg,
-            [(-self.front_angle_deg, self.front_angle_deg)],
-        )
-        left = self._region_min(
-            msg,
-            [(self.side_center_deg - self.side_width_deg, self.side_center_deg + self.side_width_deg)],
-        )
-        right = self._region_min(
-            msg,
-            [(-self.side_center_deg - self.side_width_deg, -self.side_center_deg + self.side_width_deg)],
-        )
-
+    def regions_callback(self, msg: DistanceRegions) -> None:
         stamp_sec = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) / 1e9
-        scan = self.controller.update_scan(front, left, right, stamp_sec)
+        scan = self.controller.update_scan(float(msg.front), float(msg.left), float(msg.right), stamp_sec)
+        scan.left_rate = float(msg.left_rate)
         command = self.controller.compute_command(scan)
         self.publisher.publish(command)
-
-    def _region_min(self, msg: LaserScan, windows_deg: List[tuple]) -> float:
-        samples: List[float] = []
-        for angle_deg in self._iter_window_angles(msg, windows_deg):
-            index = int(round((angle_deg - msg.angle_min) / msg.angle_increment))
-            if 0 <= index < len(msg.ranges):
-                value = self.controller.sanitize_range(msg.ranges[index], msg.range_min, msg.range_max)
-                samples.append(value)
-
-        if not samples:
-            return msg.range_max
-        return min(samples)
-
-    def _iter_window_angles(self, msg: LaserScan, windows_deg: Iterable[tuple]) -> Iterable[float]:
-        for start_deg, end_deg in windows_deg:
-            start_rad = math.radians(start_deg)
-            end_rad = math.radians(end_deg)
-            low = min(start_rad, end_rad)
-            high = max(start_rad, end_rad)
-            current = low
-            while current <= high:
-                yield current
-                current += max(msg.angle_increment, math.radians(1.0))
 
 
 def main(args=None) -> None:

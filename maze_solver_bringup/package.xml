@@ -10,11 +10,16 @@
 
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <depend>maze_solver_description</depend>
+  <depend>maze_solver_diagnostics</depend>
+  <depend>maze_solver_interfaces</depend>
   <depend>maze_solver_logic</depend>
+  <depend>maze_solver_perception</depend>
 
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>rviz2</exec_depend>
+  <exec_depend>xacro</exec_depend>
 
   <test_depend>python3-pytest</test_depend>
 

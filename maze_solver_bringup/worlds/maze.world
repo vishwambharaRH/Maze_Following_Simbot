@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="maze_world">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.004</max_step_size>
+      <real_time_update_rate>250</real_time_update_rate>
+    </physics>
+
+    <scene>
+      <ambient>0.7 0.7 0.7 1</ambient>
+      <background>0.95 0.95 0.98 1</background>
+    </scene>
+
+    <model name="maze_walls">
+      <static>true</static>
+      <link name="walls">
+        <collision name="outer_north">
+          <pose>3.0 3.0 0.4 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.8</size></box></geometry>
+        </collision>
+        <collision name="outer_south">
+          <pose>3.0 -1.0 0.4 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.8</size></box></geometry>
+        </collision>
+        <collision name="outer_west">
+          <pose>-1.0 1.0 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 4.15 0.8</size></box></geometry>
+        </collision>
+        <collision name="outer_east">
+          <pose>7.0 1.0 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 4.15 0.8</size></box></geometry>
+        </collision>
+
+        <collision name="inner_1">
+          <pose>0.8 1.0 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 2.2 0.8</size></box></geometry>
+        </collision>
+        <collision name="inner_2">
+          <pose>2.3 2.0 0.4 0 0 0</pose>
+          <geometry><box><size>2.7 0.15 0.8</size></box></geometry>
+        </collision>
+        <collision name="inner_3">
+          <pose>3.6 0.4 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 2.3 0.8</size></box></geometry>
+        </collision>
+        <collision name="inner_4">
+          <pose>5.1 1.6 0.4 0 0 0</pose>
+          <geometry><box><size>2.2 0.15 0.8</size></box></geometry>
+        </collision>
+        <collision name="inner_5">
+          <pose>5.9 0.1 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 1.7 0.8</size></box></geometry>
+        </collision>
+        <collision name="dead_end">
+          <pose>2.3 -0.3 0.4 0 0 0</pose>
+          <geometry><box><size>2.0 0.15 0.8</size></box></geometry>
+        </collision>
+
+        <visual name="outer_north_visual">
+          <pose>3.0 3.0 0.4 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="outer_south_visual">
+          <pose>3.0 -1.0 0.4 0 0 0</pose>
+          <geometry><box><size>8.0 0.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="outer_west_visual">
+          <pose>-1.0 1.0 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 4.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="outer_east_visual">
+          <pose>7.0 1.0 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 4.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="inner_1_visual">
+          <pose>0.8 1.0 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 2.2 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="inner_2_visual">
+          <pose>2.3 2.0 0.4 0 0 0</pose>
+          <geometry><box><size>2.7 0.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="inner_3_visual">
+          <pose>3.6 0.4 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 2.3 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="inner_4_visual">
+          <pose>5.1 1.6 0.4 0 0 0</pose>
+          <geometry><box><size>2.2 0.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="inner_5_visual">
+          <pose>5.9 0.1 0.4 0 0 0</pose>
+          <geometry><box><size>0.15 1.7 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+        <visual name="dead_end_visual">
+          <pose>2.3 -0.3 0.4 0 0 0</pose>
+          <geometry><box><size>2.0 0.15 0.8</size></box></geometry>
+          <material><ambient>0.87 0.74 0.55 1</ambient><diffuse>0.87 0.74 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -1,32 +1,41 @@
 # Predictive Maze Solver
 
-ROS2 Humble workspace scaffold for a predictive wall-following maze robot.
+ROS2 Humble workspace for a predictive wall-following maze robot.
 
 ## Packages
 
-- `maze_solver_logic`: State machine, predictive wall-follow controller, and `/cmd_vel` output.
-- `maze_solver_bringup`: Launch files for logic-only runs or full Gazebo integration.
+- `maze_solver_interfaces`: Custom regional-distance message.
+- `maze_solver_perception`: Cleans `/scan`, publishes `/scan_filtered` and `/distance_regions`.
+- `maze_solver_logic`: State machine plus predictive PID wall follower.
+- `maze_solver_diagnostics`: Collision watchdog and solve-time logger.
+- `maze_solver_description`: Xacro robot model and RViz config.
+- `maze_solver_bringup`: Gazebo world, params, and launch orchestration.
 
-## Quick Start
+## Build
 
 ```bash
 colcon build --symlink-install
 source install/setup.bash
+```
+
+## Launch Full Demo
+
+```bash
+ros2 launch maze_solver_bringup full_system.launch.py
+```
+
+## Launch Logic Only
+
+```bash
 ros2 launch maze_solver_bringup logic_only.launch.py
 ```
 
-## Full Simulation Hook Points
+## Topics
 
-```bash
-ros2 launch maze_solver_bringup full_system.launch.py \
-  world:=/absolute/path/to/maze.world \
-  robot_model:=/absolute/path/to/robot.urdf \
-  enable_perception:=true \
-  perception_package:=maze_perception \
-  perception_executable:=distance_filter_node \
-  enable_diagnostics:=true \
-  diagnostics_package:=maze_diagnostics \
-  diagnostics_executable:=watchdog_node
-```
-
-The logic node expects a filtered `sensor_msgs/msg/LaserScan` on `/scan_filtered` by default.
+- `/scan`: Raw Gazebo LiDAR
+- `/scan_filtered`: Median-filtered LiDAR
+- `/distance_regions`: Simplified front-left-right distances with rates
+- `/cmd_vel`: Velocity command
+- `/odom`: Diff-drive odometry
+- `/maze_solver/goal_reached`: Goal flag
+- `/maze_solver/status`: Status string
