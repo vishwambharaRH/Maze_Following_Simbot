@@ -4,6 +4,8 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import LaserScan
 
 from maze_solver_interfaces.msg import DistanceRegions
@@ -35,28 +37,35 @@ class MazePerceptionNode(Node):
         self.side_width_deg = float(self.get_parameter('side_width_deg').value)
         self.window_filter_size = max(1, int(self.get_parameter('window_filter_size').value))
         self.max_valid_range = float(self.get_parameter('max_valid_range').value)
+        self._seen_first_scan = False
 
         self.previous_snapshot: Optional[RegionSnapshot] = None
+        scan_qos = qos_profile_sensor_data
+        region_qos = QoSProfile(depth=10, reliability=ReliabilityPolicy.RELIABLE)
 
         self.filtered_scan_pub = self.create_publisher(
             LaserScan,
             str(self.get_parameter('filtered_scan_topic').value),
-            10,
+            scan_qos,
         )
         self.region_pub = self.create_publisher(
             DistanceRegions,
             str(self.get_parameter('regions_topic').value),
-            10,
+            region_qos,
         )
         self.create_subscription(
             LaserScan,
             str(self.get_parameter('scan_topic').value),
             self.scan_callback,
-            10,
+            scan_qos,
         )
         self.get_logger().info('Perception node ready. Waiting for /scan.')
 
     def scan_callback(self, msg: LaserScan) -> None:
+        if not self._seen_first_scan:
+            self._seen_first_scan = True
+            self.get_logger().info('First /scan received. Perception pipeline active.')
+
         filtered_ranges = self._median_filter(msg.ranges, msg.range_min, min(msg.range_max, self.max_valid_range))
 
         filtered_msg = LaserScan()

@@ -1,7 +1,8 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, SetEnvironmentVariable
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -19,16 +20,39 @@ def generate_launch_description() -> LaunchDescription:
 
     robot_description = Command(['xacro', ' ', robot_xacro])
 
-    gazebo = IncludeLaunchDescription(
+    gzserver = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            PathJoinSubstitution([FindPackageShare('gazebo_ros'), 'launch', 'gazebo.launch.py'])
+            PathJoinSubstitution([FindPackageShare('gazebo_ros'), 'launch', 'gzserver.launch.py'])
         ]),
         launch_arguments={
             'world': world,
             'verbose': 'true',
-            'gui': gui,
-            'server': server,
+            'server_required': 'true',
         }.items(),
+        condition=IfCondition(server),
+    )
+
+    gzclient = ExecuteProcess(
+        cmd=[
+            'gzclient',
+            PythonExpression(['"--verbose" if "', gui, '" == "true" else ""']),
+        ],
+        output='screen',
+        additional_env={
+            'GAZEBO_MODEL_PATH': ['/usr/share/gazebo-11/models', ':', gazebo_model_path],
+            'GAZEBO_RESOURCE_PATH': [
+                gazebo_resource_path,
+                ':',
+                EnvironmentVariable('GAZEBO_RESOURCE_PATH', default_value=''),
+            ],
+            'LIBGL_ALWAYS_SOFTWARE': PythonExpression([
+                '"1" if "',
+                LaunchConfiguration('software_rendering'),
+                '" == "true" else "0"',
+            ]),
+        },
+        shell=False,
+        condition=IfCondition(gui),
     )
 
     state_publisher = Node(
@@ -128,8 +152,9 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument('spawn_y', default_value='-0.55'),
         DeclareLaunchArgument('spawn_z', default_value='0.08'),
         DeclareLaunchArgument('spawn_yaw', default_value='0.0'),
-        DeclareLaunchArgument('gui', default_value='false'),
+        DeclareLaunchArgument('gui', default_value='true'),
         DeclareLaunchArgument('server', default_value='true'),
+        DeclareLaunchArgument('software_rendering', default_value='false'),
         SetEnvironmentVariable(
             name='GAZEBO_MODEL_PATH',
             value=[
@@ -146,7 +171,8 @@ def generate_launch_description() -> LaunchDescription:
                 EnvironmentVariable('GAZEBO_RESOURCE_PATH', default_value=''),
             ],
         ),
-        gazebo,
+        gzserver,
+        gzclient,
         state_publisher,
         spawn_robot,
         perception_node,

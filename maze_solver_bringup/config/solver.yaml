@@ -18,13 +18,14 @@ maze_logic_node:
     front_block_threshold: 0.55
     turn_exit_front_threshold: 0.85
     front_clearance_target: 1.10
-    base_linear_speed: 0.23
+    base_linear_speed: 0.24
     min_linear_speed: 0.05
     max_linear_speed: 0.32
-    search_linear_speed: 0.07
-    search_turn_speed: 0.55
+    search_linear_speed: 0.14
+    search_turn_speed: 0.20
+    search_bias: 0.22
     turn_linear_speed: 0.03
-    turn_angular_speed: 0.95
+    turn_angular_speed: 0.75
     max_angular_speed: 1.5
     max_speed_reduction: 0.24
     predictive_gain: 0.40

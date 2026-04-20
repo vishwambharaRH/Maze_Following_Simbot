@@ -27,6 +27,7 @@ class MazeLogicNode(Node):
         self.declare_parameter('max_angular_speed', 1.4)
         self.declare_parameter('max_speed_reduction', 0.22)
         self.declare_parameter('predictive_gain', 0.35)
+        self.declare_parameter('search_bias', 0.22)
         self.declare_parameter('angular_kp', 2.4)
         self.declare_parameter('angular_ki', 0.0)
         self.declare_parameter('angular_kd', 0.25)
@@ -52,6 +53,7 @@ class MazeLogicNode(Node):
             'max_angular_speed',
             'max_speed_reduction',
             'predictive_gain',
+            'search_bias',
             'angular_kp',
             'angular_ki',
             'angular_kd',
@@ -63,6 +65,8 @@ class MazeLogicNode(Node):
         ]}
 
         self.controller = PredictiveWallFollower(config)
+        self._seen_first_regions = False
+        self._sent_first_cmd = False
         self.publisher = self.create_publisher(
             Twist,
             str(self.get_parameter('cmd_vel_topic').value),
@@ -77,10 +81,20 @@ class MazeLogicNode(Node):
         self.get_logger().info('Maze logic node ready. Waiting for regional distance data.')
 
     def regions_callback(self, msg: DistanceRegions) -> None:
+        if not self._seen_first_regions:
+            self._seen_first_regions = True
+            self.get_logger().info('First /distance_regions received. Logic active.')
+
         stamp_sec = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) / 1e9
         scan = self.controller.update_scan(float(msg.front), float(msg.left), float(msg.right), stamp_sec)
         scan.left_rate = float(msg.left_rate)
+        scan.right_rate = float(msg.right_rate)
         command = self.controller.compute_command(scan)
+        if not self._sent_first_cmd:
+            self._sent_first_cmd = True
+            self.get_logger().info(
+                f'First /cmd_vel sent. linear={command.linear.x:.2f} angular={command.angular.z:.2f}'
+            )
         self.publisher.publish(command)
 
 

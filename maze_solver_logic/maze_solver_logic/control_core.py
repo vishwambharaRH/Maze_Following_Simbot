@@ -14,6 +14,7 @@ class ScanSnapshot:
     left: float
     right: float
     left_rate: float
+    right_rate: float
     dt: float
     stamp_sec: float
 
@@ -31,6 +32,7 @@ class PredictiveWallFollower:
         self.front_clearance_target = config['front_clearance_target']
         self.max_speed_reduction = config['max_speed_reduction']
         self.predictive_gain = config['predictive_gain']
+        self.search_bias = config['search_bias']
 
         self.angular_pid = PIDController(
             kp=config['angular_kp'],
@@ -57,16 +59,19 @@ class PredictiveWallFollower:
 
     def update_scan(self, front: float, left: float, right: float, stamp_sec: float) -> ScanSnapshot:
         left_rate = 0.0
+        right_rate = 0.0
         dt = 0.0
         if self.previous_scan is not None:
             dt = max(1e-3, stamp_sec - self.previous_scan.stamp_sec)
             left_rate = (left - self.previous_scan.left) / dt
+            right_rate = (right - self.previous_scan.right) / dt
 
         scan = ScanSnapshot(
             front=front,
             left=left,
             right=right,
             left_rate=left_rate,
+            right_rate=right_rate,
             dt=dt,
             stamp_sec=stamp_sec,
         )
@@ -81,7 +86,12 @@ class PredictiveWallFollower:
             self.angular_pid.reset()
             self.linear_pid.reset()
             twist.linear.x = self.search_linear_speed
-            twist.angular.z = self.search_turn_speed
+            if scan.left < scan.right:
+                twist.angular.z = self.search_bias
+            elif scan.right < scan.left:
+                twist.angular.z = -self.search_bias
+            else:
+                twist.angular.z = self.search_turn_speed
             return twist
 
         if decision.state == RobotState.TURNING:
@@ -96,9 +106,19 @@ class PredictiveWallFollower:
                 twist.angular.z = abs(self.turn_angular_speed)
             return twist
 
-        wall_error = self.desired_wall_distance - scan.left
-        predictive_correction = -self.predictive_gain * scan.left_rate
+        if decision.wall_side == 'left':
+            wall_distance = scan.left
+            wall_rate = scan.left_rate
+            direction_sign = 1.0
+        else:
+            wall_distance = scan.right
+            wall_rate = scan.right_rate
+            direction_sign = -1.0
+
+        wall_error = self.desired_wall_distance - wall_distance
+        predictive_correction = -self.predictive_gain * wall_rate
         angular_command = self.angular_pid.compute(wall_error + predictive_correction, scan.dt)
+        angular_command *= direction_sign
 
         front_error = self.front_clearance_target - scan.front
         speed_penalty = max(0.0, self.linear_pid.compute(front_error, scan.dt))
